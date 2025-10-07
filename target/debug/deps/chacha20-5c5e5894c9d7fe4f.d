@@ -1,0 +1,11 @@
+C:\TD\s3p-core-step-a\s3p-cli\s3p-cli\target\debug\deps\chacha20-5c5e5894c9d7fe4f.d: C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\lib.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\legacy.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\xchacha.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\soft.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\avx2.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\sse2.rs
+
+C:\TD\s3p-core-step-a\s3p-cli\s3p-cli\target\debug\deps\libchacha20-5c5e5894c9d7fe4f.rmeta: C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\lib.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\legacy.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\xchacha.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\soft.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\avx2.rs C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\sse2.rs
+
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\lib.rs:
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends.rs:
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\legacy.rs:
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\xchacha.rs:
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\soft.rs:
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\avx2.rs:
+C:\Users\toxadab\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\chacha20-0.9.1\src\backends\sse2.rs:
