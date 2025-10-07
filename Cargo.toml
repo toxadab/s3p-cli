@@ -3,8 +3,12 @@ name = "s3p-cli"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
-description = "BlockNet S³P CLI"
-rust-version = "1.74"
+description = "CLI for BlockNet S³P (encrypt→erasure→merkle, fountain tools)"
+repository = "https://github.com/toxadab/s3p-cli"
+homepage   = "https://github.com/toxadab/s3p-cli"
+readme     = "README.md"
+keywords   = ["cli", "erasure-codes", "merkle", "aead", "reed-solomon"]
+categories = ["command-line-utilities", "cryptography"]
 
 [dependencies]
 # ядро из crates.io

@@ -1,2 +1,4 @@
-/target
-**/*.rs.bk
+﻿# Rust
+/target/
+/dist/
+/*.zip
