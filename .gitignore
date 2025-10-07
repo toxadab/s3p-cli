@@ -1,4 +1,8 @@
-﻿# Rust
-/target/
+﻿/target/
 /dist/
-/*.zip
+/ft_tx/
+/ft_rx/
+/out_rs/
+/out_stream/
+*.bin
+*.zip

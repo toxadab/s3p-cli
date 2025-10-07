@@ -1,20 +1,22 @@
-[package]
+﻿[package]
 name = "s3p-cli"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "Apache-2.0"
-description = "CLI for BlockNet S³P (encrypt→erasure→merkle, fountain tools)"
+description = "CLI for BlockNet SВіP (encryptв†’erasureв†’merkle, fountain tools)"
 repository = "https://github.com/toxadab/s3p-cli"
 homepage   = "https://github.com/toxadab/s3p-cli"
 readme     = "README.md"
 keywords   = ["cli", "erasure-codes", "merkle", "aead", "reed-solomon"]
 categories = ["command-line-utilities", "cryptography"]
+# С‡С‚РѕР±С‹ РІ РїР°РєРµС‚ РЅРµ РїРѕРїР°Р»Рё СЃР±РѕСЂРѕС‡РЅС‹Рµ Р°СЂС‚РµС„Р°РєС‚С‹
+exclude = ["/target", "/dist", "/ft_tx", "/ft_rx", "/out_rs", "/out_stream", "*.zip", "*.bin"]
 
 [dependencies]
-# ядро из crates.io
+# СЏРґСЂРѕ РёР· crates.io
 s3p-core = "0.1"
 
-# то, что используют bin'ы напрямую
+# С‚Рѕ, С‡С‚Рѕ РёСЃРїРѕР»СЊР·СѓСЋС‚ bin'С‹ РЅР°РїСЂСЏРјСѓСЋ
 clap = { version = "4.5", features = ["derive"] }
 base64 = "0.22"
 rand = "0.8"
@@ -27,3 +29,4 @@ hex = "0.4"
 [profile.release]
 lto = "thin"
 codegen-units = 1
+
