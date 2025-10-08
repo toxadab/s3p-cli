@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/s3p-cli",
+    "crates/nos-ledger",
+    "crates/poc-engine",
+    "crates/referral-module",
+]
+resolver = "2"

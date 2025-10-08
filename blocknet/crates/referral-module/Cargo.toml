@@ -1,0 +1,9 @@
+[package]
+name = "referral-module"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Referral graph accounting and payout helpers for BlockNet"
+
+[dependencies]
+# Referral module dependencies will be added here
