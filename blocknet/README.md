@@ -7,7 +7,7 @@ workspace so development can evolve in lock-step.
 ```
 blocknet/
   crates/
-    s3p-core/          # cryptographic core (existing project to be integrated)
+    s3p-core/          # cryptographic + storage primitives (migrated from upstream)
     s3p-cli/           # command-line utilities (current crate)
     nos-ledger/        # NOS accounting state machine (new)
     poc-engine/        # Proof-of-Contract lifecycle engine (new)

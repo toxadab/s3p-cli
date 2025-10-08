@@ -1,0 +1,27 @@
+[package]
+name = "s3p-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Core primitives for the S3P stack: encryption, erasure coding, merkleization, and fountain packets"
+repository = "https://github.com/blocknet-org/blocknet"
+authors = ["BlockNet Contributors"]
+
+[lib]
+name = "s3p_core"
+path = "src/lib.rs"
+
+[dependencies]
+chacha20poly1305 = { version = "0.10", features = ["xchacha20poly1305"] }
+rand = { version = "0.8", features = ["std", "std_rng"] }
+zeroize = "1.6"
+reed-solomon-erasure = { version = "6", default-features = false, features = ["std"] }
+serde = { version = "1", features = ["derive"] }
+thiserror = "1.0"
+rs-merkle = "1.4"
+blake3 = "1.5"
+hex = "0.4"
+
+[dev-dependencies]
+rand = { version = "0.8", features = ["std", "std_rng"] }
+serde_json = "1"
