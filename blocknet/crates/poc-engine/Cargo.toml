@@ -1,0 +1,9 @@
+[package]
+name = "poc-engine"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Proof-of-Contract execution engine for BlockNet"
+
+[dependencies]
+# Proof-of-Contract dependencies will be added here

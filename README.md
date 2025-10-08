@@ -1,13 +1,6 @@
-﻿# s3p-cli
+# BlockNet Workspace Layout
 
-CLI для BlockNet S³P: шифрование (XChaCha20-Poly1305), код Рида–Соломона, Меркл-дерево, плюс fountain-инструменты.
-
-## Установка
-
-    cargo install s3p-cli --locked
-
-## Бинарники
-
-    s3p-cli
-    s3p-fountain-serve
-    s3p-fountain-fetch
+The codebase has been reorganized into a monorepo rooted at `blocknet/` so
+that all BlockNet crates, adapters, and applications can evolve together.
+See [`blocknet/README.md`](blocknet/README.md) for details about the planned
+modules and roadmap.

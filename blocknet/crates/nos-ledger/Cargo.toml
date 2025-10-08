@@ -1,0 +1,9 @@
+[package]
+name = "nos-ledger"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "In-memory and persistent accounting ledger for the BlockNet NOS unit"
+
+[dependencies]
+# Add ledger-specific dependencies here
