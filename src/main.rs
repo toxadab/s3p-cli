@@ -98,6 +98,7 @@ Notes:
   - RS-профиль: в <out_dir> будут shard_###.bin и manifest.json; после pod-sign — pod_###.json
   - Stream RS: manifest_stream.json + те же shard_###.bin (заполняются «полосами» по чанкам)
   - Fountain-профиль: fountain_meta.json + fountain_packets.jsonl
+  - Fountain-профиль: требуется --k ≥ 2, --c > 0 и 0 < --delta < 1; используйте либо --packets, либо --overhead
   - ikm-hex/salt-hex — ключевой материал в hex (ikm обычно 32 байта = 64 hex-символа)
   - sk-hex — 32-байтный секретный ключ Ed25519 в hex (ровно 64 hex-символа)"
     );
@@ -873,8 +874,38 @@ fn decode_wire_packet(wp: WirePacketAny) -> Packet {
 }
 
 // robust-soliton: μ = (ρ + τ) / Z
-fn robust_soliton(k: usize, c: f64, delta: f64) -> Vec<(usize, f32)> {
-    assert!(k >= 2, "k must be >= 2");
+#[derive(Debug)]
+enum RobustSolitonError {
+    KTooSmall,
+    InvalidC,
+    InvalidDelta,
+}
+
+impl std::fmt::Display for RobustSolitonError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RobustSolitonError::KTooSmall => write!(f, "k must be >= 2"),
+            RobustSolitonError::InvalidC => write!(f, "c must be a positive finite number"),
+            RobustSolitonError::InvalidDelta => {
+                write!(f, "delta must be a finite number in the range (0, 1)")
+            }
+        }
+    }
+}
+
+impl std::error::Error for RobustSolitonError {}
+
+fn robust_soliton(k: usize, c: f64, delta: f64) -> Result<Vec<(usize, f32)>, RobustSolitonError> {
+    if k < 2 {
+        return Err(RobustSolitonError::KTooSmall);
+    }
+    if !c.is_finite() || c <= 0.0 {
+        return Err(RobustSolitonError::InvalidC);
+    }
+    if !delta.is_finite() || delta <= 0.0 || delta >= 1.0 {
+        return Err(RobustSolitonError::InvalidDelta);
+    }
+
     let kf = k as f64;
 
     // ρ(d)
@@ -923,7 +954,7 @@ fn robust_soliton(k: usize, c: f64, delta: f64) -> Vec<(usize, f32)> {
             out.push((d, p32));
         }
     }
-    out
+    Ok(out)
 }
 
 fn pack_fountain_cmd(args: &[String]) {
@@ -945,7 +976,20 @@ fn pack_fountain_cmd(args: &[String]) {
     let delta: f64 = arg_flag_default(args, "delta", 0.05f64);
 
     if packets_opt.is_some() && overhead_opt.is_some() {
-        panic!("use either --packets or --overhead, not both");
+        eprintln!("error: use either --packets or --overhead, not both");
+        std::process::exit(2);
+    }
+    if k < 2 {
+        eprintln!("error: --k must be at least 2");
+        std::process::exit(2);
+    }
+    if !c.is_finite() || c <= 0.0 {
+        eprintln!("error: --c must be a positive finite number");
+        std::process::exit(2);
+    }
+    if !delta.is_finite() || delta <= 0.0 || delta >= 1.0 {
+        eprintln!("error: --delta must be within (0, 1)");
+        std::process::exit(2);
     }
 
     let ikm = hex_decode(&ikm_hex);
@@ -959,7 +1003,13 @@ fn pack_fountain_cmd(args: &[String]) {
     let (blocks, block_len) = partition_into_blocks(&ciphertext, k);
 
     // robust-soliton → FountainEncoder
-    let probs_vec = robust_soliton(k, c, delta);
+    let probs_vec = match robust_soliton(k, c, delta) {
+        Ok(v) => v,
+        Err(err) => {
+            eprintln!("error: failed to build robust soliton distribution: {err}");
+            std::process::exit(2);
+        }
+    };
     let probs_leaked: &'static [(usize, f32)] = Box::leak(probs_vec.into_boxed_slice());
     let params = FountainParams {
         degree_probs: probs_leaked,
