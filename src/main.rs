@@ -1049,30 +1049,65 @@ fn unpack_fountain_cmd(args: &[String]) {
         read_all(&recovered_ct_path)
     } else {
         // читаем строки jsonl → Packet (устойчиво к разным вариантам)
-        let file = fs::File::open(in_dir.join("fountain_packets.jsonl")).expect("open jsonl");
+        let file = match fs::File::open(in_dir.join("fountain_packets.jsonl")) {
+            Ok(file) => file,
+            Err(err) => {
+                eprintln!(
+                    "error: unable to open fountain_packets.jsonl in {}: {err}",
+                    in_dir.display()
+                );
+                std::process::exit(2);
+            }
+        };
         let reader = std::io::BufReader::new(file);
         let mut packets: Vec<Packet> = Vec::new();
-        for line in reader.lines() {
-            let l = line.unwrap();
-            if l.trim().is_empty() {
+        for (idx, line_result) in reader.lines().enumerate() {
+            let l = match line_result {
+                Ok(line) => line,
+                Err(err) => {
+                    eprintln!(
+                        "error: failed to read line {} from fountain_packets.jsonl: {err}",
+                        idx + 1
+                    );
+                    std::process::exit(2);
+                }
+            };
+            let trimmed = l.trim();
+            if trimmed.is_empty() {
                 continue;
             }
-            let parsed: WirePacketAny =
-                serde_json::from_str(&l).expect("jsonl parse (WirePacketAny)");
-            packets.push(decode_wire_packet(parsed));
+            match serde_json::from_str::<WirePacketAny>(trimmed) {
+                Ok(parsed) => packets.push(decode_wire_packet(parsed)),
+                Err(err) => {
+                    eprintln!(
+                        "warning: skipping malformed JSON at line {} in fountain_packets.jsonl: {err}",
+                        idx + 1
+                    );
+                }
+            }
         }
 
         if packets.len() < meta.k {
-            panic!(
-                "insufficient packets: have {}, need at least {}",
+            eprintln!(
+                "error: insufficient fountain packets (have {}, need at least {}). Try fetching more packets.",
                 packets.len(),
                 meta.k
             );
+            std::process::exit(2);
         }
 
         // peel decode
-        let decoded = peel_decode(meta.k, meta.block_len, packets)
-            .expect("peel decode failed (need more packets)");
+        let packet_count = packets.len();
+        let decoded = match peel_decode(meta.k, meta.block_len, packets) {
+            Some(decoded) => decoded,
+            None => {
+                eprintln!(
+                    "error: peel decode failed after collecting {} packets (need >= {}). Try fetching more packets.",
+                    packet_count, meta.k
+                );
+                std::process::exit(2);
+            }
+        };
         join_blocks(&decoded, meta.ct_len)
     };
 
