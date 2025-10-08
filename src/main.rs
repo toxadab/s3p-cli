@@ -54,9 +54,19 @@ struct StreamManifest {
     nonce_base_hex: String,  // 24 байта — база для детерминированных nonce
 }
 
-fn hex_decode(s: &str) -> Vec<u8> {
+fn hex_decode(s: &str) -> Result<Vec<u8>, String> {
     let s = s.trim();
-    hex::decode(s).expect("hex decode")
+    hex::decode(s).map_err(|e| format!("{e}"))
+}
+
+fn decode_hex_arg(name: &str, value: &str) -> Vec<u8> {
+    match hex_decode(value) {
+        Ok(bytes) => bytes,
+        Err(err) => {
+            eprintln!("error: invalid {name}: {err}");
+            std::process::exit(2);
+        }
+    }
 }
 
 fn hex_encode(b: &[u8]) -> String {
@@ -156,8 +166,8 @@ fn pack_cmd(args: &[String]) {
         usage();
     }
 
-    let ikm = hex_decode(&ikm_hex);
-    let salt = hex_decode(&salt_hex);
+    let ikm = decode_hex_arg("--ikm-hex", &ikm_hex);
+    let salt = decode_hex_arg("--salt-hex", &salt_hex);
 
     // читаем файл
     let plain = read_all(&input);
@@ -225,8 +235,8 @@ fn unpack_cmd(args: &[String]) {
     let ikm_hex = require_flag(args, "ikm-hex");
     let salt_hex = require_flag(args, "salt-hex");
 
-    let ikm = hex_decode(&ikm_hex);
-    let salt = hex_decode(&salt_hex);
+    let ikm = decode_hex_arg("--ikm-hex", &ikm_hex);
+    let salt = decode_hex_arg("--salt-hex", &salt_hex);
     let ks = KeySchedule::derive(&ikm, &salt).expect("ks derive");
 
     // читаем манифест
@@ -250,8 +260,11 @@ fn unpack_cmd(args: &[String]) {
 
     // расшифровка
     let mut nonce = [0u8; 24];
-    let nonce_bytes = hex_decode(&mf.nonce_hex);
-    assert_eq!(nonce_bytes.len(), 24, "nonce must be 24 bytes");
+    let nonce_bytes = hex_decode(&mf.nonce_hex).expect("manifest nonce hex decode");
+    if nonce_bytes.len() != 24 {
+        eprintln!("error: manifest nonce must be 24 bytes");
+        std::process::exit(2);
+    }
     nonce.copy_from_slice(&nonce_bytes);
 
     let plain = ks
@@ -306,15 +319,24 @@ fn pack_stream_cmd(args: &[String]) {
         std::process::exit(2);
     }
 
-    let ikm = hex_decode(&ikm_hex);
-    let salt = hex_decode(&salt_hex);
+    let ikm = decode_hex_arg("--ikm-hex", &ikm_hex);
+    let salt = decode_hex_arg("--salt-hex", &salt_hex);
     let ks = KeySchedule::derive(&ikm, &salt).expect("ks derive");
 
     // nonce base
     let mut nonce_base = [0u8; 24];
     if let Some(nb_hex) = arg_flag(args, "nonce-base-hex") {
-        let nb = hex_decode(&nb_hex);
-        assert_eq!(nb.len(), 24, "nonce-base-hex must be 24 bytes (48 hex)");
+        let nb = match hex_decode(&nb_hex) {
+            Ok(bytes) => bytes,
+            Err(err) => {
+                eprintln!("error: invalid --nonce-base-hex: {err}");
+                std::process::exit(2);
+            }
+        };
+        if nb.len() != 24 {
+            eprintln!("error: --nonce-base-hex must be 24 bytes (48 hex)");
+            std::process::exit(2);
+        }
         nonce_base.copy_from_slice(&nb);
     } else {
         OsRng.fill_bytes(&mut nonce_base);
@@ -442,8 +464,8 @@ fn unpack_stream_cmd(args: &[String]) {
     let ikm_hex = require_flag(args, "ikm-hex");
     let salt_hex = require_flag(args, "salt-hex");
 
-    let ikm = hex_decode(&ikm_hex);
-    let salt = hex_decode(&salt_hex);
+    let ikm = decode_hex_arg("--ikm-hex", &ikm_hex);
+    let salt = decode_hex_arg("--salt-hex", &salt_hex);
     let ks = KeySchedule::derive(&ikm, &salt).expect("ks derive");
 
     // читаем stream-манифест
@@ -501,7 +523,13 @@ fn unpack_stream_cmd(args: &[String]) {
 
         // AEAD open с детерминированным nonce для idx
         let mut nonce_base = [0u8; 24];
-        nonce_base.copy_from_slice(&hex_decode(&sm.nonce_base_hex));
+        let base_bytes =
+            hex_decode(&sm.nonce_base_hex).expect("stream manifest nonce-base hex decode");
+        if base_bytes.len() != 24 {
+            eprintln!("error: manifest_stream nonce-base must be 24 bytes");
+            std::process::exit(2);
+        }
+        nonce_base.copy_from_slice(&base_bytes);
         let nonce = derive_nonce_from_base(&nonce_base, idx as u64);
 
         let pt = ks.open(sm.aad.as_bytes(), &nonce, ct_chunk).expect("open");
@@ -599,8 +627,17 @@ fn verify_pack_stream_cmd(args: &[String]) {
 //==================== PoD: подписать/проверить/агрегировать ====================//
 
 fn parse_sk_hex(sk_hex: &str) -> SigningKey {
-    let sk_bytes = hex_decode(sk_hex);
-    assert_eq!(sk_bytes.len(), 32, "sk-hex must be 32 bytes (64 hex chars)");
+    let sk_bytes = match hex_decode(sk_hex) {
+        Ok(bytes) => bytes,
+        Err(err) => {
+            eprintln!("error: invalid sk-hex: {err}");
+            std::process::exit(2);
+        }
+    };
+    if sk_bytes.len() != 32 {
+        eprintln!("error: sk-hex must be 32 bytes (64 hex chars)");
+        std::process::exit(2);
+    }
     let mut arr = [0u8; 32];
     arr.copy_from_slice(&sk_bytes);
     SigningKey::from_bytes(&arr)
@@ -857,7 +894,7 @@ fn decode_wire_packet(wp: WirePacketAny) -> Packet {
     match wp {
         WirePacketAny::Hex { ids, body_hex } => Packet {
             ids,
-            body: hex_decode(&body_hex),
+            body: hex_decode(&body_hex).expect("packet body_hex decode"),
         },
         WirePacketAny::B64 { ids, body_b64 } => {
             let body = general_purpose::STANDARD
@@ -867,7 +904,7 @@ fn decode_wire_packet(wp: WirePacketAny) -> Packet {
         }
         WirePacketAny::Raw { ids, body } => Packet {
             ids,
-            body: hex_decode(&body),
+            body: hex_decode(&body).expect("packet body decode"),
         },
     }
 }
@@ -948,8 +985,8 @@ fn pack_fountain_cmd(args: &[String]) {
         panic!("use either --packets or --overhead, not both");
     }
 
-    let ikm = hex_decode(&ikm_hex);
-    let salt = hex_decode(&salt_hex);
+    let ikm = decode_hex_arg("--ikm-hex", &ikm_hex);
+    let salt = decode_hex_arg("--salt-hex", &salt_hex);
     let ks = KeySchedule::derive(&ikm, &salt).expect("ks derive");
 
     let plain = read_all(&input);
@@ -1035,8 +1072,8 @@ fn unpack_fountain_cmd(args: &[String]) {
     let ikm_hex = require_flag(args, "ikm-hex");
     let salt_hex = require_flag(args, "salt-hex");
 
-    let ikm = hex_decode(&ikm_hex);
-    let salt = hex_decode(&salt_hex);
+    let ikm = decode_hex_arg("--ikm-hex", &ikm_hex);
+    let salt = decode_hex_arg("--salt-hex", &salt_hex);
     let ks = KeySchedule::derive(&ikm, &salt).expect("ks derive");
 
     // meta
@@ -1078,8 +1115,11 @@ fn unpack_fountain_cmd(args: &[String]) {
 
     // AEAD open
     let mut nonce = [0u8; 24];
-    let nonce_bytes = hex_decode(&meta.nonce_hex);
-    assert_eq!(nonce_bytes.len(), 24);
+    let nonce_bytes = hex_decode(&meta.nonce_hex).expect("fountain meta nonce hex decode");
+    if nonce_bytes.len() != 24 {
+        eprintln!("error: fountain_meta nonce must be 24 bytes");
+        std::process::exit(2);
+    }
     nonce.copy_from_slice(&nonce_bytes);
     let mut pt = ks
         .open(meta.aad.as_bytes(), &nonce, &recovered_ct)
