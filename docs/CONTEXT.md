@@ -45,7 +45,7 @@
 - Signed receipts update NOS-Ledger state; contract budgets finance computation and services.
 
 ## Project Practice
-- Repositories hold the source of truth: `docs/CONTEXT.md`, `docs/ROADMAP.md`, and Issues/Milestones.
+- Repositories hold the source of truth: `docs/CONTEXT.md`, `docs/ROADMAP.md`, [`docs/ITERATION_PLAN.md`](./ITERATION_PLAN.md), and Issues/Milestones.
 - Discussions happen in chat; significant decisions are captured in docs and issues.
 - Target environments: Windows/PowerShell and Linux.
 - Build command: `cargo build --release`.
